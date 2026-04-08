@@ -239,35 +239,41 @@ function handleSpeechResult(event) {
       if (alt === 0 && result[0].confidence > 0.5) break;
     }
 
-    // If this was a final (non-interim) result and nothing matched, count as wrong attempt
+    // Only count as a wrong attempt if the child actually said a word that didn't match
+    // (ignore silence, empty results, and pauses)
     if (!matched && result.isFinal && currentWordIndex < words.length) {
-      var now = Date.now();
-      // Debounce: only count if at least 500ms since last mismatch
-      if (now - lastMismatchTime > 500) {
-        wrongAttempts++;
-        lastMismatchTime = now;
+      var transcript = result[0].transcript.trim();
+      var spokenWords = transcript.split(/\s+/).filter(function(w) {
+        return normalizeWord(w).length > 0;
+      });
 
-        if (wrongAttempts >= 2) {
-          // Two wrong attempts — mark red and move on
-          markWord(currentWordIndex, false);
-          wrongAttempts = 0;
-          currentWordIndex++;
-          if (currentWordIndex < words.length) {
-            highlightCurrentWord();
-          } else {
-            finishReading();
-            return;
-          }
-        } else {
-          // First wrong attempt — flash the word as a warning
-          wordElements[currentWordIndex].classList.add('warn');
-          $('attempts-hint').textContent = 'Try again! One more try for this word.';
-          setTimeout(function() {
-            if (currentWordIndex < wordElements.length) {
-              wordElements[currentWordIndex].classList.remove('warn');
+      // Only penalize if there were real spoken words in this result
+      if (spokenWords.length > 0) {
+        var now = Date.now();
+        if (now - lastMismatchTime > 500) {
+          wrongAttempts++;
+          lastMismatchTime = now;
+
+          if (wrongAttempts >= 2) {
+            markWord(currentWordIndex, false);
+            wrongAttempts = 0;
+            currentWordIndex++;
+            if (currentWordIndex < words.length) {
+              highlightCurrentWord();
+            } else {
+              finishReading();
+              return;
             }
-            $('attempts-hint').textContent = '';
-          }, 1500);
+          } else {
+            wordElements[currentWordIndex].classList.add('warn');
+            $('attempts-hint').textContent = 'Try again! One more try for this word.';
+            setTimeout(function() {
+              if (currentWordIndex < wordElements.length) {
+                wordElements[currentWordIndex].classList.remove('warn');
+              }
+              $('attempts-hint').textContent = '';
+            }, 1500);
+          }
         }
       }
     }
