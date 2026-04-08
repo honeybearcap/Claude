@@ -16,6 +16,9 @@ let completedPassages = [];
 // Track wrong attempts per word (auto-skip after 2)
 let wrongAttempts = 0;
 let lastMismatchTime = 0;
+// Track the last result index that yielded a correct match, so we don't
+// re-penalize the same result when it transitions from interim to final
+let lastMatchedResultIndex = -1;
 
 // === DOM REFS ===
 const $ = id => document.getElementById(id);
@@ -104,6 +107,7 @@ function loadPassage(index) {
   elapsedSeconds = 0;
   wrongAttempts = 0;
   lastMismatchTime = 0;
+  lastMatchedResultIndex = -1;
   updateTimerDisplay();
   showStartUI();
 }
@@ -225,6 +229,7 @@ function handleSpeechResult(event) {
         if (spoken && wordsMatch(spoken, target)) {
           matched = true;
           wrongAttempts = 0;
+          lastMatchedResultIndex = i;
           markWord(currentWordIndex, true);
           currentWordIndex++;
           if (currentWordIndex < words.length) {
@@ -239,16 +244,18 @@ function handleSpeechResult(event) {
       if (alt === 0 && result[0].confidence > 0.5) break;
     }
 
-    // Only count as a wrong attempt if the child actually said a word that didn't match
-    // (ignore silence, empty results, and pauses)
-    if (!matched && result.isFinal && currentWordIndex < words.length) {
-      var transcript = result[0].transcript.trim();
-      var spokenWords = transcript.split(/\s+/).filter(function(w) {
+    // Only count as a wrong attempt if:
+    // 1. No word matched in this result
+    // 2. It's a final (not interim) result
+    // 3. This result index didn't already yield a match (interim->final replay)
+    // 4. The child actually said a real word (not silence/pause)
+    if (!matched && result.isFinal && i > lastMatchedResultIndex && currentWordIndex < words.length) {
+      var finalTranscript = result[0].transcript.trim();
+      var finalWords = finalTranscript.split(/\s+/).filter(function(w) {
         return normalizeWord(w).length > 0;
       });
 
-      // Only penalize if there were real spoken words in this result
-      if (spokenWords.length > 0) {
+      if (finalWords.length > 0) {
         var now = Date.now();
         if (now - lastMismatchTime > 500) {
           wrongAttempts++;
