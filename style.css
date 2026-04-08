@@ -497,17 +497,52 @@ body {
 }
 .progress-dots {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   margin: 12px 0;
+  flex-wrap: wrap;
 }
 .dot {
-  width: 10px; height: 10px;
+  width: 18px; height: 18px;
   border-radius: 50%;
   background: rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  font-size: 0;
+  position: relative;
 }
+.dot:hover {
+  transform: scale(1.3);
+  background: rgba(255,255,255,0.6);
+}
+.dot:active { transform: scale(1.1); }
 .dot.done { background: #00b894; }
-.dot.current { background: #fff; border: 2px solid #c56cf0; }
+.dot.current {
+  background: #fff;
+  border: 2px solid #c56cf0;
+  box-shadow: 0 0 8px rgba(197,108,240,0.5);
+}
+
+/* Reading buttons row */
+.reading-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.btn-stop {
+  background: linear-gradient(135deg, #636e72, #b2bec3);
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 10px 20px;
+}
+.btn-next-inline {
+  background: linear-gradient(135deg, #a29bfe, #c56cf0);
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 10px 20px;
+}
 
 /* === SPARKLE on correct words === */
 .word-span.correct::after {

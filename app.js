@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-begin').addEventListener('click', startReading);
   $('btn-retry').addEventListener('click', retryPassage);
   $('btn-next').addEventListener('click', nextPassage);
+  $('btn-stop').addEventListener('click', stopAndShowStats);
+  $('btn-skip-passage').addEventListener('click', skipToNextPassage);
 });
 
 // === SCREEN MANAGEMENT ===
@@ -75,13 +77,20 @@ function loadPassage(index) {
   $('passage-title').textContent = p.title;
   $('passage-number').textContent = 'Passage ' + (index + 1) + ' of ' + PASSAGES.length;
 
-  // Render progress dots
-  $('progress-dots').innerHTML = PASSAGES.map(function(_, i) {
-    var cls = 'dot';
-    if (completedPassages.indexOf(i) !== -1) cls += ' done';
-    else if (i === index) cls += ' current';
-    return '<div class="' + cls + '"></div>';
-  }).join('');
+  // Render clickable progress dots
+  var dotsContainer = $('progress-dots');
+  dotsContainer.innerHTML = '';
+  PASSAGES.forEach(function(passage, i) {
+    var dot = document.createElement('div');
+    dot.className = 'dot';
+    if (completedPassages.indexOf(i) !== -1) dot.classList.add('done');
+    if (i === index) dot.classList.add('current');
+    dot.title = passage.title;
+    dot.addEventListener('click', function() {
+      jumpToPassage(i);
+    });
+    dotsContainer.appendChild(dot);
+  });
 
   // Parse and display words
   words = p.text.split(/\s+/);
@@ -145,7 +154,10 @@ function startTimer() {
 
 function stopTimer() {
   clearInterval(timerInterval);
-  elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+  timerInterval = null;
+  if (startTime) {
+    elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+  }
   if (!firstMinuteLocked) {
     wordsCorrectInFirstMinute = correctCount;
   }
@@ -597,4 +609,28 @@ function cleanupFlyingWords() {
   document.querySelectorAll('.flying-word').forEach(function(el) { el.remove(); });
   $('monster-overlay').classList.remove('active');
   $('monster').classList.remove('visible');
+}
+
+// Stop reading mid-passage and show stats for what was read so far
+function stopAndShowStats() {
+  if (!startTime) return;
+  finishReading();
+}
+
+// Skip current passage entirely and go to next
+function skipToNextPassage() {
+  stopTimer();
+  stopSpeechRecognition();
+  cleanupFlyingWords();
+  currentPassageIndex = (currentPassageIndex + 1) % PASSAGES.length;
+  loadPassage(currentPassageIndex);
+}
+
+// Jump to any passage by index (from clicking a dot)
+function jumpToPassage(index) {
+  stopTimer();
+  stopSpeechRecognition();
+  cleanupFlyingWords();
+  currentPassageIndex = index;
+  loadPassage(currentPassageIndex);
 }
