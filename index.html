@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ReadingBuddy - Reading Fun!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-school">
+
+  <!-- Floating decorations -->
+  <div class="decorations" id="decorations"></div>
+
+  <div class="container">
+
+    <!-- Shared passage card (stays visible across screens) -->
+    <div id="header-area">
+      <h1 class="app-title">📖 ReadingBuddy</h1>
+      <p class="app-subtitle" id="subtitle">Read aloud and watch the words light up!</p>
+      <div id="progress-dots" class="progress-dots"></div>
+    </div>
+
+    <!-- Timer bar (hidden until reading) -->
+    <div class="timer-bar hidden" id="timer-bar">
+      <span class="mic-indicator"></span>
+      <span class="timer-icon">⏱️</span>
+      <span class="timer-value" id="timer-value">0:00</span>
+    </div>
+
+    <div class="passage-card" id="passage-card">
+      <h2 class="passage-title" id="passage-title"></h2>
+      <p class="passage-number" id="passage-number"></p>
+      <div class="words-container" id="words-container"></div>
+    </div>
+
+    <!-- Start instructions + button -->
+    <div id="start-controls">
+      <p class="instructions">
+        Press <strong>Start Reading</strong> and read the story out loud!<br>
+        Words turn <span style="color:#00b894;font-weight:700">green</span> when you read them right!
+      </p>
+      <button class="btn btn-start" id="btn-begin">🎤 Start Reading</button>
+    </div>
+
+    <!-- Reading controls (skip button) -->
+    <div id="reading-controls" class="hidden">
+      <button class="btn btn-skip" id="btn-skip">Skip Word ⏭️</button>
+    </div>
+
+    <!-- Stats panel -->
+    <div id="stats-panel" class="stats-panel hidden">
+      <h2 class="stats-title">Your Reading Score</h2>
+      <div class="stats-grid">
+        <div class="stat-box highlight">
+          <div class="stat-value" id="stat-wcpm">0</div>
+          <div class="stat-label">Words Correct<br>Per Minute</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="stat-time">0:00</div>
+          <div class="stat-label">Total<br>Time</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="stat-correct">0</div>
+          <div class="stat-label">Words<br>Correct</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="stat-accuracy">0%</div>
+          <div class="stat-label">Accuracy</div>
+        </div>
+      </div>
+      <div class="end-buttons">
+        <button class="btn btn-retry" id="btn-retry">🔄 Try Again</button>
+        <button class="btn btn-next" id="btn-next">Next Story ➡️</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Monster overlay -->
+  <div class="monster-overlay" id="monster-overlay">
+    <div class="monster" id="monster">
+      <div class="monster-body">
+        <div class="monster-horns">
+          <div class="horn"></div>
+          <div class="horn"></div>
+        </div>
+        <div class="monster-eyes">
+          <div class="monster-eye"><div class="monster-pupil"></div></div>
+          <div class="monster-eye"><div class="monster-pupil"></div></div>
+        </div>
+        <div class="monster-mouth" id="monster-mouth">
+          <div class="monster-tongue"></div>
+        </div>
+      </div>
+      <div class="monster-feet">
+        <div class="foot"></div>
+        <div class="foot"></div>
+      </div>
+      <div class="monster-label">Nom nom! Yummy words! 😋</div>
+    </div>
+  </div>
+
+  <script src="passages.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
