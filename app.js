@@ -114,6 +114,8 @@ function loadPassage(index) {
 
 // === READING SESSION ===
 function startReading() {
+  // Initialize AudioContext on user gesture (required by iOS Safari)
+  getAudioCtx();
   showReadingUI();
   highlightCurrentWord();
   startTimer();
@@ -346,6 +348,156 @@ function markWord(index, correct) {
   }
 }
 
+// === AUDIO CONTEXT & SOUND EFFECTS ===
+var audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playChompSound() {
+  var ctx = getAudioCtx();
+  var now = ctx.currentTime;
+
+  // Short percussive "chomp" — noise burst + low thud
+  var bufferLen = ctx.sampleRate * 0.08;
+  var buffer = ctx.createBuffer(1, bufferLen, ctx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for (var i = 0; i < bufferLen; i++) {
+    // Decaying noise
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferLen, 3);
+  }
+  var noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+
+  // Bandpass to make it sound mouth-like
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 800;
+  filter.Q.value = 1.5;
+
+  var noiseGain = ctx.createGain();
+  noiseGain.gain.value = 0.4;
+
+  noise.connect(filter);
+  filter.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noise.start(now);
+
+  // Low "thud" oscillator
+  var osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(180, now);
+  osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+  var oscGain = ctx.createGain();
+  oscGain.gain.setValueAtTime(0.35, now);
+  oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+  osc.connect(oscGain);
+  oscGain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
+
+function playCelebrationSong() {
+  var ctx = getAudioCtx();
+  var now = ctx.currentTime;
+
+  // Princess-style celebration melody using a bright, sparkly tone
+  // Notes: C5 E5 G5 C6 | G5 A5 B5 C6 | E5 G5 C6 E6 | C6 (hold)
+  var melody = [
+    { freq: 523, start: 0.0,  dur: 0.2  },  // C5
+    { freq: 659, start: 0.2,  dur: 0.2  },  // E5
+    { freq: 784, start: 0.4,  dur: 0.2  },  // G5
+    { freq: 1047, start: 0.6, dur: 0.3  },  // C6
+    { freq: 784, start: 1.0,  dur: 0.15 },  // G5
+    { freq: 880, start: 1.15, dur: 0.15 },  // A5
+    { freq: 988, start: 1.3,  dur: 0.15 },  // B5
+    { freq: 1047, start: 1.45, dur: 0.35 }, // C6
+    { freq: 659, start: 1.9,  dur: 0.15 },  // E5
+    { freq: 784, start: 2.05, dur: 0.15 },  // G5
+    { freq: 1047, start: 2.2, dur: 0.2  },  // C6
+    { freq: 1319, start: 2.4, dur: 0.4  },  // E6
+    { freq: 1047, start: 2.9, dur: 0.6  },  // C6 (hold)
+  ];
+
+  // Sparkle arpeggios in background
+  var sparkles = [
+    { freq: 2093, start: 0.1,  dur: 0.08 },
+    { freq: 2637, start: 0.5,  dur: 0.08 },
+    { freq: 3136, start: 0.9,  dur: 0.08 },
+    { freq: 2093, start: 1.3,  dur: 0.08 },
+    { freq: 2637, start: 1.7,  dur: 0.08 },
+    { freq: 3136, start: 2.1,  dur: 0.08 },
+    { freq: 3520, start: 2.5,  dur: 0.08 },
+    { freq: 4186, start: 2.9,  dur: 0.12 },
+  ];
+
+  // Play melody notes with a bright triangle-ish tone
+  melody.forEach(function(note) {
+    var osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = note.freq;
+
+    // Add slight vibrato for a magical feel
+    var vibrato = ctx.createOscillator();
+    vibrato.frequency.value = 5;
+    var vibratoGain = ctx.createGain();
+    vibratoGain.gain.value = 3;
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(osc.frequency);
+    vibrato.start(now + note.start);
+    vibrato.stop(now + note.start + note.dur + 0.1);
+
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now + note.start);
+    gain.gain.linearRampToValueAtTime(0.18, now + note.start + 0.03);
+    gain.gain.setValueAtTime(0.18, now + note.start + note.dur * 0.7);
+    gain.gain.linearRampToValueAtTime(0, now + note.start + note.dur + 0.08);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + note.start);
+    osc.stop(now + note.start + note.dur + 0.1);
+  });
+
+  // Play sparkle notes — very short, high, quiet
+  sparkles.forEach(function(note) {
+    var osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = note.freq;
+
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now + note.start);
+    gain.gain.linearRampToValueAtTime(0.06, now + note.start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + note.start + note.dur);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + note.start);
+    osc.stop(now + note.start + note.dur + 0.05);
+  });
+
+  // Chime at the very end
+  setTimeout(function() {
+    var chimeNow = ctx.currentTime;
+    [1047, 1319, 1568, 2093].forEach(function(freq, idx) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.08, chimeNow);
+      gain.gain.exponentialRampToValueAtTime(0.001, chimeNow + 0.8);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(chimeNow + idx * 0.06);
+      osc.stop(chimeNow + 1.0);
+    });
+  }, 3500);
+}
+
 // === FINISH ===
 function finishReading() {
   stopTimer();
@@ -364,6 +516,7 @@ function finishReading() {
 
   setTimeout(function() {
     showStatsUI();
+    playCelebrationSong();
     setTimeout(startMonsterAnimation, 1200);
   }, 400);
 }
@@ -407,6 +560,9 @@ function startMonsterAnimation() {
             flyingWord.classList.add('eaten');
           });
         });
+
+        // Chomp sound when word reaches the mouth
+        setTimeout(function() { playChompSound(); }, 550);
 
         setTimeout(function() { flyingWord.remove(); }, 900);
       }, delay);
