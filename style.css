@@ -8,37 +8,37 @@ body {
   transition: background 0.6s ease;
 }
 
-/* === BACKGROUND THEMES === */
+/* === BACKGROUND THEMES (Unicorn pastels) === */
 .bg-school {
-  background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
 }
 .bg-park {
-  background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+  background: linear-gradient(135deg, #a1ffce 0%, #faffd1 50%, #c3aed6 100%);
 }
 .bg-pets {
-  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
 }
 .bg-farm {
-  background: linear-gradient(135deg, #e44d26 0%, #f7971e 100%);
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #e0aaff 100%);
 }
 .bg-space {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background: linear-gradient(135deg, #2b1055 0%, #7597de 50%, #d4a5ff 100%);
   color: #fff;
 }
 .bg-ocean {
-  background: linear-gradient(135deg, #006994 0%, #00d4ff 100%);
+  background: linear-gradient(135deg, #89f7fe 0%, #c3aed6 50%, #f8a4d8 100%);
 }
 .bg-rainbow {
-  background: linear-gradient(135deg, #ee0979 0%, #ff6a00 25%, #ffd200 50%, #56ab2f 75%, #185a9d 100%);
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fdfcfb 50%, #a1c4fd 75%, #c2e9fb 100%);
 }
 .bg-garden {
-  background: linear-gradient(135deg, #c471f5 0%, #fa71cd 100%);
+  background: linear-gradient(135deg, #f5b6ff 0%, #b8ceff 50%, #d4fc79 100%);
 }
 .bg-winter {
-  background: linear-gradient(135deg, #e6dada 0%, #274046 100%);
+  background: linear-gradient(135deg, #e8daef 0%, #aed6f1 50%, #fadbd8 100%);
 }
 .bg-camping {
-  background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
 }
 
 /* === FLOATING DECORATIONS === */
@@ -108,7 +108,7 @@ body {
 }
 .passage-title {
   font-size: 1.2rem;
-  color: #6c5ce7;
+  color: #c56cf0;
   text-align: center;
   margin-bottom: 4px;
 }
@@ -148,8 +148,8 @@ body {
   animation: shake 0.4s ease;
 }
 .word-span.current {
-  background: rgba(108, 92, 231, 0.15);
-  border-bottom: 3px solid #6c5ce7;
+  background: rgba(197, 108, 240, 0.15);
+  border-bottom: 3px solid #c56cf0;
 }
 
 @keyframes popIn {
@@ -178,25 +178,25 @@ body {
 .btn:active { transform: scale(0.95); }
 
 .btn-start {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  background: linear-gradient(135deg, #f093fb, #c56cf0, #a29bfe);
   color: #fff;
   font-size: 1.3rem;
   padding: 16px 48px;
   animation: pulse 2s infinite;
 }
-.btn-start:hover { box-shadow: 0 6px 20px rgba(108,92,231,0.4); }
+.btn-start:hover { box-shadow: 0 6px 20px rgba(197,108,240,0.4); }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 4px 15px rgba(108,92,231,0.3); }
-  50% { box-shadow: 0 4px 30px rgba(108,92,231,0.6); }
+  0%, 100% { box-shadow: 0 4px 15px rgba(197,108,240,0.3); }
+  50% { box-shadow: 0 4px 30px rgba(197,108,240,0.6); }
 }
 
 .btn-retry {
-  background: linear-gradient(135deg, #fdcb6e, #f39c12);
+  background: linear-gradient(135deg, #fbc2eb, #f093fb);
   color: #fff;
 }
 .btn-next {
-  background: linear-gradient(135deg, #00b894, #00cec9);
+  background: linear-gradient(135deg, #a29bfe, #c56cf0);
   color: #fff;
 }
 .btn-skip {
@@ -243,7 +243,7 @@ body {
 }
 .stats-title {
   font-size: 1.4rem;
-  color: #6c5ce7;
+  color: #c56cf0;
   margin-bottom: 16px;
 }
 .stats-grid {
@@ -268,7 +268,7 @@ body {
   margin-top: 2px;
 }
 .stat-box.highlight {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  background: linear-gradient(135deg, #c56cf0, #f093fb);
 }
 .stat-box.highlight .stat-value,
 .stat-box.highlight .stat-label {
@@ -306,10 +306,11 @@ body {
 .monster-body {
   width: 150px;
   height: 150px;
-  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+  background: linear-gradient(135deg, #fff0f6, #fce4ec, #f3e5f5);
   border-radius: 50% 50% 45% 45%;
   position: relative;
   animation: monsterBounce 0.6s ease-in-out infinite;
+  border: 3px solid #f8bbd0;
 }
 @keyframes monsterBounce {
   0%, 100% { transform: translateY(0); }
@@ -331,8 +332,8 @@ body {
   justify-content: center;
 }
 .monster-pupil {
-  width: 16px; height: 16px;
-  background: #2d3436;
+  width: 14px; height: 14px;
+  background: #6c5ce7;
   border-radius: 50%;
   animation: lookAround 2s ease-in-out infinite;
 }
@@ -344,9 +345,9 @@ body {
 }
 
 .monster-mouth {
-  width: 60px;
-  height: 30px;
-  background: #d63031;
+  width: 50px;
+  height: 25px;
+  background: #f8a5c2;
   border-radius: 0 0 40px 40px;
   margin: 10px auto 0;
   position: relative;
@@ -369,20 +370,63 @@ body {
   transform: translateX(-50%);
 }
 
-.monster-horns {
+/* Unicorn horn */
+.unicorn-horn {
   position: absolute;
-  top: -15px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 25px;
-}
-.horn {
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 0; height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 25px solid #fd79a8;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 45px solid #ffd700;
+  filter: drop-shadow(0 0 6px rgba(255,215,0,0.6));
+  z-index: 2;
 }
+.unicorn-horn::after {
+  content: '';
+  position: absolute;
+  top: 12px; left: -6px;
+  width: 12px; height: 3px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 2px;
+  box-shadow: 0 8px 0 rgba(255,255,255,0.4), 0 16px 0 rgba(255,255,255,0.3);
+}
+/* Unicorn ears */
+.unicorn-ear {
+  position: absolute;
+  top: -8px;
+  width: 22px; height: 30px;
+  background: linear-gradient(135deg, #fff0f6, #f8bbd0);
+  border-radius: 50% 50% 0 0;
+  z-index: 1;
+}
+.unicorn-ear-left { left: 20px; transform: rotate(-15deg); }
+.unicorn-ear-right { right: 20px; transform: rotate(15deg); }
+/* Unicorn mane */
+.unicorn-mane {
+  position: absolute;
+  top: -5px; right: -15px;
+  width: 40px; height: 80px;
+  background: linear-gradient(180deg, #ff9a9e, #fad0c4, #c56cf0, #a29bfe, #89f7fe);
+  border-radius: 0 30px 30px 0;
+  z-index: 0;
+  animation: maneFlow 2s ease-in-out infinite;
+}
+@keyframes maneFlow {
+  0%, 100% { transform: rotate(0deg) scaleY(1); }
+  50% { transform: rotate(3deg) scaleY(1.05); }
+}
+/* Unicorn blush */
+.unicorn-blush {
+  position: absolute;
+  width: 20px; height: 12px;
+  background: rgba(255,182,193,0.5);
+  border-radius: 50%;
+  top: 85px;
+}
+.unicorn-blush-left { left: 15px; }
+.unicorn-blush-right { right: 15px; }
 
 .monster-feet {
   display: flex;
@@ -392,7 +436,7 @@ body {
 }
 .foot {
   width: 40px; height: 20px;
-  background: #6c5ce7;
+  background: #f8bbd0;
   border-radius: 0 0 20px 20px;
 }
 
@@ -463,4 +507,28 @@ body {
   background: rgba(255,255,255,0.3);
 }
 .dot.done { background: #00b894; }
-.dot.current { background: #fff; border: 2px solid #6c5ce7; }
+.dot.current { background: #fff; border: 2px solid #c56cf0; }
+
+/* === SPARKLE on correct words === */
+.word-span.correct::after {
+  content: '✨';
+  font-size: 0.6rem;
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  animation: sparkle 0.6s ease forwards;
+}
+@keyframes sparkle {
+  0% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+  100% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+}
+
+/* Attempt warning flash */
+.word-span.warn {
+  animation: warnFlash 0.4s ease;
+}
+@keyframes warnFlash {
+  0%, 100% { background: rgba(197, 108, 240, 0.15); }
+  50% { background: rgba(255, 165, 0, 0.3); }
+}

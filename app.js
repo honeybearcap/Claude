@@ -13,9 +13,9 @@ let firstMinuteLocked = false;
 let correctCount = 0;
 let incorrectCount = 0;
 let completedPassages = [];
-// Track which spoken words we've already processed so we don't double-count
-let processedResultIndex = 0;
-let processedWordOffset = 0;
+// Track wrong attempts per word (auto-skip after 2)
+let wrongAttempts = 0;
+let lastMismatchTime = 0;
 
 // === DOM REFS ===
 const $ = id => document.getElementById(id);
@@ -26,12 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-begin').addEventListener('click', startReading);
   $('btn-retry').addEventListener('click', retryPassage);
   $('btn-next').addEventListener('click', nextPassage);
-  $('btn-skip').addEventListener('click', skipWord);
 });
 
 // === SCREEN MANAGEMENT ===
 function showStartUI() {
-  $('subtitle').textContent = 'Read aloud and watch the words light up!';
+  $('subtitle').textContent = 'Read aloud and make the words sparkle!';
   $('start-controls').classList.remove('hidden');
   $('reading-controls').classList.add('hidden');
   $('timer-bar').classList.add('hidden');
@@ -41,12 +40,13 @@ function showStartUI() {
 }
 
 function showReadingUI() {
-  $('subtitle').textContent = 'Read the words out loud!';
+  $('subtitle').textContent = 'Read the words out loud! 🦄';
   $('start-controls').classList.add('hidden');
   $('reading-controls').classList.remove('hidden');
   $('timer-bar').classList.remove('hidden');
   $('stats-panel').classList.add('hidden');
   $('passage-number').classList.add('hidden');
+  $('attempts-hint').textContent = '';
 }
 
 function showStatsUI() {
@@ -102,8 +102,8 @@ function loadPassage(index) {
   wordsCorrectInFirstMinute = 0;
   firstMinuteLocked = false;
   elapsedSeconds = 0;
-  processedResultIndex = 0;
-  processedWordOffset = 0;
+  wrongAttempts = 0;
+  lastMismatchTime = 0;
   updateTimerDisplay();
   showStartUI();
 }
@@ -209,6 +209,7 @@ function handleSpeechResult(event) {
 
   for (var i = event.resultIndex; i < event.results.length; i++) {
     var result = event.results[i];
+    var matched = false;
 
     // For each alternative transcription
     for (var alt = 0; alt < result.length; alt++) {
@@ -222,6 +223,8 @@ function handleSpeechResult(event) {
         var target = normalizeWord(words[currentWordIndex]);
 
         if (spoken && wordsMatch(spoken, target)) {
+          matched = true;
+          wrongAttempts = 0;
           markWord(currentWordIndex, true);
           currentWordIndex++;
           if (currentWordIndex < words.length) {
@@ -230,12 +233,43 @@ function handleSpeechResult(event) {
             finishReading();
             return;
           }
-          // After a match on this alternative, break to avoid double-matching
-          // on the same result set for the next word
         }
       }
       // If we found matches in the best alternative, don't check worse ones
       if (alt === 0 && result[0].confidence > 0.5) break;
+    }
+
+    // If this was a final (non-interim) result and nothing matched, count as wrong attempt
+    if (!matched && result.isFinal && currentWordIndex < words.length) {
+      var now = Date.now();
+      // Debounce: only count if at least 500ms since last mismatch
+      if (now - lastMismatchTime > 500) {
+        wrongAttempts++;
+        lastMismatchTime = now;
+
+        if (wrongAttempts >= 2) {
+          // Two wrong attempts — mark red and move on
+          markWord(currentWordIndex, false);
+          wrongAttempts = 0;
+          currentWordIndex++;
+          if (currentWordIndex < words.length) {
+            highlightCurrentWord();
+          } else {
+            finishReading();
+            return;
+          }
+        } else {
+          // First wrong attempt — flash the word as a warning
+          wordElements[currentWordIndex].classList.add('warn');
+          $('attempts-hint').textContent = 'Try again! One more try for this word.';
+          setTimeout(function() {
+            if (currentWordIndex < wordElements.length) {
+              wordElements[currentWordIndex].classList.remove('warn');
+            }
+            $('attempts-hint').textContent = '';
+          }, 1500);
+        }
+      }
     }
   }
 }
@@ -296,17 +330,6 @@ function markWord(index, correct) {
   } else {
     el.classList.add('incorrect');
     incorrectCount++;
-  }
-}
-
-function skipWord() {
-  if (currentWordIndex >= words.length) return;
-  markWord(currentWordIndex, false);
-  currentWordIndex++;
-  if (currentWordIndex < words.length) {
-    highlightCurrentWord();
-  } else {
-    finishReading();
   }
 }
 
