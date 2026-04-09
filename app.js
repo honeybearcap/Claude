@@ -510,6 +510,53 @@ function playCelebrationSong() {
   }, 3500);
 }
 
+function playPoopSound() {
+  var ctx = getAudioCtx();
+  var now = ctx.currentTime;
+
+  // Descending "blurp" — a comedic low rumble
+  var osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(200, now);
+  osc.frequency.exponentialRampToValueAtTime(50, now + 0.4);
+
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 300;
+  filter.Q.value = 5;
+
+  var gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.15, now);
+  gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.5);
+}
+
+function playPoopLetSound() {
+  var ctx = getAudioCtx();
+  var now = ctx.currentTime;
+
+  // Short little "plop" for each word
+  var osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(300, now);
+  osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+
+  var gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.15);
+}
+
 // === FINISH ===
 function finishReading() {
   stopTimer();
@@ -548,11 +595,14 @@ function startMonsterAnimation() {
   setTimeout(function() {
     mouth.classList.add('eating');
     var greenWords = document.querySelectorAll('.word-span.correct');
+    var redWords = document.querySelectorAll('.word-span.incorrect');
     var monsterRect = monster.getBoundingClientRect();
     var monsterMouthX = monsterRect.left + monsterRect.width / 2;
     var monsterMouthY = monsterRect.top + 100;
 
     var delay = 0;
+
+    // Phase 1: Eat the green words (yummy!)
     greenWords.forEach(function(el) {
       setTimeout(function() {
         var rect = el.getBoundingClientRect();
@@ -573,22 +623,110 @@ function startMonsterAnimation() {
           });
         });
 
-        // Chomp sound when word reaches the mouth
         setTimeout(function() { playChompSound(); }, 550);
-
         setTimeout(function() { flyingWord.remove(); }, 900);
       }, delay);
       delay += 120;
     });
 
-    var totalAnimTime = delay + 1200;
+    // Phase 2: Eat the red words (yucky!)
+    var redPhaseStart = delay + 400;
+    if (redWords.length > 0) {
+      // Change label to show disgust
+      setTimeout(function() {
+        $('monster-label').textContent = 'Eww, yucky words! 🤢';
+      }, redPhaseStart - 200);
+    }
+
+    redWords.forEach(function(el) {
+      setTimeout(function() {
+        var rect = el.getBoundingClientRect();
+        var flyingWord = document.createElement('div');
+        flyingWord.className = 'flying-word flying-word-red';
+        flyingWord.textContent = el.textContent;
+        flyingWord.style.left = rect.left + 'px';
+        flyingWord.style.top = rect.top + 'px';
+        document.body.appendChild(flyingWord);
+
+        el.style.opacity = '0';
+
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            flyingWord.style.left = monsterMouthX + 'px';
+            flyingWord.style.top = monsterMouthY + 'px';
+            flyingWord.classList.add('eaten');
+          });
+        });
+
+        setTimeout(function() { playChompSound(); }, 550);
+        setTimeout(function() { flyingWord.remove(); }, 900);
+      }, redPhaseStart);
+      redPhaseStart += 120;
+    });
+
+    // Phase 3: Poop out the red words!
+    var poopPhaseStart = redPhaseStart + 800;
+    if (redWords.length > 0) {
+      setTimeout(function() {
+        $('monster-label').textContent = 'Those words taste bad! 💩';
+        playPoopSound();
+
+        var monsterRect2 = monster.getBoundingClientRect();
+        var poopX = monsterRect2.left + monsterRect2.width / 2;
+        var poopY = monsterRect2.bottom - 10;
+
+        var poopDelay = 200;
+        redWords.forEach(function(el, idx) {
+          setTimeout(function() {
+            var poopWord = document.createElement('div');
+            poopWord.className = 'poop-word';
+            poopWord.textContent = el.textContent;
+            poopWord.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
+            poopWord.style.left = poopX + 'px';
+            poopWord.style.top = poopY + 'px';
+            document.body.appendChild(poopWord);
+
+            playPoopLetSound();
+
+            // Scatter the pooped words below the unicorn
+            var scatterX = poopX + (Math.random() - 0.5) * 200;
+            var scatterY = poopY + 30 + Math.random() * 80;
+            requestAnimationFrame(function() {
+              requestAnimationFrame(function() {
+                poopWord.style.left = scatterX + 'px';
+                poopWord.style.top = scatterY + 'px';
+                poopWord.classList.add('plopped');
+              });
+            });
+
+            setTimeout(function() {
+              poopWord.classList.add('fade-out');
+              setTimeout(function() { poopWord.remove(); }, 600);
+            }, 2000);
+          }, poopDelay);
+          poopDelay += 200;
+        });
+
+        // Reset label
+        setTimeout(function() {
+          $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
+        }, poopDelay + 1500);
+      }, poopPhaseStart);
+    }
+
+    // Monster leaves after everything
+    var exitTime = (redWords.length > 0)
+      ? poopPhaseStart + (redWords.length * 200) + 3000
+      : delay + 1200;
+
     setTimeout(function() {
       mouth.classList.remove('eating');
       monster.classList.remove('visible');
       setTimeout(function() {
         overlay.classList.remove('active');
+        $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
       }, 900);
-    }, totalAnimTime);
+    }, exitTime);
   }, 800);
 }
 
@@ -607,8 +745,11 @@ function nextPassage() {
 
 function cleanupFlyingWords() {
   document.querySelectorAll('.flying-word').forEach(function(el) { el.remove(); });
+  document.querySelectorAll('.poop-word').forEach(function(el) { el.remove(); });
   $('monster-overlay').classList.remove('active');
   $('monster').classList.remove('visible');
+  $('monster-mouth').classList.remove('eating');
+  $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
 }
 
 // Stop reading mid-passage and show stats for what was read so far
