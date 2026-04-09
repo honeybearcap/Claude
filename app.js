@@ -587,28 +587,32 @@ function startMonsterAnimation() {
   var mouth = $('monster-mouth');
   var greenWords = document.querySelectorAll('.word-span.correct');
   var redWords = document.querySelectorAll('.word-span.incorrect');
+  var hasRed = redWords.length > 0;
 
   overlay.classList.add('active');
 
-  // Move unicorn to center of screen
+  // Slide unicorn up to center of screen
   setTimeout(function() {
-    monster.classList.add('centered');
     monster.classList.add('visible');
   }, 100);
 
-  // Wait for unicorn to arrive at center, then start eating
+  // Wait for unicorn to arrive, then start eating
   setTimeout(function() {
     mouth.classList.add('eating');
-    var monsterRect = monster.getBoundingClientRect();
-    var mouthX = monsterRect.left + monsterRect.width / 2;
-    var mouthY = monsterRect.top + monsterRect.height * 0.65;
+
+    // Helper: get current mouth position
+    function getMouth() {
+      var r = monster.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height * 0.65 };
+    }
 
     var delay = 0;
 
-    // === Phase 1: Eat the green words ===
+    // === Phase 1: Eat the pink (correct) words ===
     greenWords.forEach(function(el) {
       setTimeout(function() {
         var rect = el.getBoundingClientRect();
+        var m = getMouth();
         var fw = document.createElement('div');
         fw.className = 'flying-word';
         fw.textContent = el.textContent;
@@ -619,8 +623,8 @@ function startMonsterAnimation() {
 
         requestAnimationFrame(function() {
           requestAnimationFrame(function() {
-            fw.style.left = mouthX + 'px';
-            fw.style.top = mouthY + 'px';
+            fw.style.left = m.x + 'px';
+            fw.style.top = m.y + 'px';
             fw.classList.add('eaten');
           });
         });
@@ -630,26 +634,30 @@ function startMonsterAnimation() {
       delay += 120;
     });
 
-    // === Phase 2: Turn red words into poop shapes, then eat them ===
-    var redPhaseStart = delay + 500;
+    // === Phase 2: Transform purple words into poop in-place, then eat ===
+    var redTransformTime = delay + 400;
+    var redEatStart = delay + 900;
 
-    if (redWords.length > 0) {
-      // First: transform all red words into poop shapes in-place
+    if (hasRed) {
+      // Transform purple words into poop shapes in-place
       setTimeout(function() {
         $('monster-label').textContent = 'Eww, yucky words! 🤢';
         redWords.forEach(function(el) {
           el.style.transition = 'all 0.5s ease';
           el.style.background = 'linear-gradient(145deg, #8d6e63, #6d4c41)';
-          el.style.color = '#5d4037';
+          el.style.color = '#fff';
           el.style.borderRadius = '40% 40% 45% 45%';
-          el.style.padding = '2px 6px';
+          el.style.padding = '2px 8px';
+          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
         });
-      }, redPhaseStart - 400);
+      }, redTransformTime);
 
-      // Then eat the poop-shaped words one by one
+      // Eat the poop-shaped words one by one
+      var eatTime = redEatStart;
       redWords.forEach(function(el) {
         setTimeout(function() {
           var rect = el.getBoundingClientRect();
+          var m = getMouth();
           var fw = document.createElement('div');
           fw.className = 'flying-word flying-word-poop';
           fw.textContent = el.textContent;
@@ -658,54 +666,46 @@ function startMonsterAnimation() {
           document.body.appendChild(fw);
           el.style.opacity = '0';
 
-          // Recalculate mouth position (unicorn is centered)
-          var mr = monster.getBoundingClientRect();
-          var mx = mr.left + mr.width / 2;
-          var my = mr.top + mr.height * 0.65;
-
           requestAnimationFrame(function() {
             requestAnimationFrame(function() {
-              fw.style.left = mx + 'px';
-              fw.style.top = my + 'px';
+              fw.style.left = m.x + 'px';
+              fw.style.top = m.y + 'px';
               fw.classList.add('eaten');
             });
           });
           setTimeout(function() { playChompSound(); }, 550);
           setTimeout(function() { fw.remove(); }, 900);
-        }, redPhaseStart);
-        redPhaseStart += 150;
+        }, eatTime);
+        eatTime += 180;
       });
-    }
 
-    // === Phase 3: Poop them out — fall to the bottom and stay ===
-    var poopPhaseStart = redPhaseStart + 900;
-
-    if (redWords.length > 0) {
+      // === Phase 3: Poop them out — fall to the bottom and stay ===
+      var poopStart = eatTime + 900;
       setTimeout(function() {
         $('monster-label').textContent = 'Those words taste bad! 💩';
         playPoopSound();
 
-        var mr = monster.getBoundingClientRect();
-        var poopStartX = mr.left + mr.width / 2;
-        var poopStartY = mr.bottom;
-        var screenBottom = window.innerHeight;
+        var m = getMouth();
+        var poopX = m.x;
+        var poopY = m.y + 60;
+        var screenH = window.innerHeight;
 
-        var poopDelay = 300;
+        var pDelay = 300;
         redWords.forEach(function(el) {
           setTimeout(function() {
             var pw = document.createElement('div');
             pw.className = 'poop-word';
             pw.textContent = el.textContent;
             pw.style.setProperty('--rot', (Math.random() * 30 - 15) + 'deg');
-            pw.style.left = poopStartX + 'px';
-            pw.style.top = poopStartY + 'px';
+            pw.style.left = poopX + 'px';
+            pw.style.top = poopY + 'px';
             document.body.appendChild(pw);
 
             playPoopLetSound();
 
             // Fall to the bottom of the screen and stay
-            var landX = poopStartX + (Math.random() - 0.5) * 250;
-            var landY = screenBottom - 30 - Math.random() * 50;
+            var landX = poopX + (Math.random() - 0.5) * 220;
+            var landY = screenH - 20 - Math.random() * 40;
             requestAnimationFrame(function() {
               requestAnimationFrame(function() {
                 pw.style.left = landX + 'px';
@@ -713,27 +713,37 @@ function startMonsterAnimation() {
                 pw.classList.add('plopped');
               });
             });
-            // Words stay — no fade-out
-          }, poopDelay);
-          poopDelay += 250;
+          }, pDelay);
+          pDelay += 250;
         });
-      }, poopPhaseStart);
-    }
 
-    // === Unicorn exits ===
-    var exitTime = (redWords.length > 0)
-      ? poopPhaseStart + (redWords.length * 250) + 2500
-      : delay + 1500;
+        // Reset label after pooping
+        setTimeout(function() {
+          $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
+        }, pDelay + 1000);
+      }, poopStart);
 
-    setTimeout(function() {
-      mouth.classList.remove('eating');
-      monster.classList.remove('centered');
-      monster.classList.remove('visible');
+      // Unicorn exits after poop phase
+      var exitTime = poopStart + (redWords.length * 250) + 2500;
       setTimeout(function() {
-        overlay.classList.remove('active');
-        $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
-      }, 900);
-    }, exitTime);
+        mouth.classList.remove('eating');
+        monster.classList.remove('visible');
+        setTimeout(function() {
+          overlay.classList.remove('active');
+          $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
+        }, 900);
+      }, exitTime);
+
+    } else {
+      // No red words — unicorn exits after eating green
+      setTimeout(function() {
+        mouth.classList.remove('eating');
+        monster.classList.remove('visible');
+        setTimeout(function() {
+          overlay.classList.remove('active');
+        }, 900);
+      }, delay + 1500);
+    }
   }, 1000);
 }
 
@@ -755,7 +765,6 @@ function cleanupFlyingWords() {
   document.querySelectorAll('.poop-word').forEach(function(el) { el.remove(); });
   $('monster-overlay').classList.remove('active');
   $('monster').classList.remove('visible');
-  $('monster').classList.remove('centered');
   $('monster-mouth').classList.remove('eating');
   $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
 }

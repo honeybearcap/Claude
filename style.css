@@ -136,15 +136,15 @@ body {
   position: relative;
 }
 .word-span.correct {
-  color: #00b894;
+  color: #f368a0;
   font-weight: 700;
-  background: rgba(0, 184, 148, 0.1);
+  background: rgba(243, 104, 160, 0.12);
   animation: popIn 0.3s ease;
 }
 .word-span.incorrect {
-  color: #d63031;
+  color: #6c5ce7;
   font-weight: 700;
-  background: rgba(214, 48, 49, 0.1);
+  background: rgba(108, 92, 231, 0.12);
   animation: shake 0.4s ease;
 }
 .word-span.current {
@@ -298,14 +298,11 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 101;
-  transition: bottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: bottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
 }
-.monster.visible { bottom: 20px; }
-.monster.centered {
-  bottom: auto;
-  top: 50%;
-  transform: translateX(-50%) translateY(-50%);
+.monster.visible {
+  bottom: calc(50vh - 120px);
 }
 
 .monster-body {
@@ -459,7 +456,7 @@ body {
   position: fixed;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #00b894;
+  color: #f368a0;
   z-index: 102;
   pointer-events: none;
   transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -469,10 +466,6 @@ body {
   opacity: 0;
   transform: scale(0.2);
 }
-.flying-word-red {
-  color: #d63031;
-}
-
 /* Pooped-out words — land at the bottom and stay */
 .poop-word {
   position: fixed;
@@ -567,7 +560,7 @@ body {
   background: rgba(255,255,255,0.6);
 }
 .dot:active { transform: scale(1.1); }
-.dot.done { background: #00b894; }
+.dot.done { background: #f368a0; }
 .dot.current {
   background: #fff;
   border: 2px solid #c56cf0;
