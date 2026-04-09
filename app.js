@@ -585,149 +585,156 @@ function startMonsterAnimation() {
   var overlay = $('monster-overlay');
   var monster = $('monster');
   var mouth = $('monster-mouth');
+  var greenWords = document.querySelectorAll('.word-span.correct');
+  var redWords = document.querySelectorAll('.word-span.incorrect');
 
   overlay.classList.add('active');
 
+  // Move unicorn to center of screen
   setTimeout(function() {
+    monster.classList.add('centered');
     monster.classList.add('visible');
   }, 100);
 
+  // Wait for unicorn to arrive at center, then start eating
   setTimeout(function() {
     mouth.classList.add('eating');
-    var greenWords = document.querySelectorAll('.word-span.correct');
-    var redWords = document.querySelectorAll('.word-span.incorrect');
     var monsterRect = monster.getBoundingClientRect();
-    var monsterMouthX = monsterRect.left + monsterRect.width / 2;
-    var monsterMouthY = monsterRect.top + 100;
+    var mouthX = monsterRect.left + monsterRect.width / 2;
+    var mouthY = monsterRect.top + monsterRect.height * 0.65;
 
     var delay = 0;
 
-    // Phase 1: Eat the green words (yummy!)
+    // === Phase 1: Eat the green words ===
     greenWords.forEach(function(el) {
       setTimeout(function() {
         var rect = el.getBoundingClientRect();
-        var flyingWord = document.createElement('div');
-        flyingWord.className = 'flying-word';
-        flyingWord.textContent = el.textContent;
-        flyingWord.style.left = rect.left + 'px';
-        flyingWord.style.top = rect.top + 'px';
-        document.body.appendChild(flyingWord);
-
+        var fw = document.createElement('div');
+        fw.className = 'flying-word';
+        fw.textContent = el.textContent;
+        fw.style.left = rect.left + 'px';
+        fw.style.top = rect.top + 'px';
+        document.body.appendChild(fw);
         el.style.opacity = '0';
 
         requestAnimationFrame(function() {
           requestAnimationFrame(function() {
-            flyingWord.style.left = monsterMouthX + 'px';
-            flyingWord.style.top = monsterMouthY + 'px';
-            flyingWord.classList.add('eaten');
+            fw.style.left = mouthX + 'px';
+            fw.style.top = mouthY + 'px';
+            fw.classList.add('eaten');
           });
         });
-
         setTimeout(function() { playChompSound(); }, 550);
-        setTimeout(function() { flyingWord.remove(); }, 900);
+        setTimeout(function() { fw.remove(); }, 900);
       }, delay);
       delay += 120;
     });
 
-    // Phase 2: Eat the red words (yucky!)
-    var redPhaseStart = delay + 400;
+    // === Phase 2: Turn red words into poop shapes, then eat them ===
+    var redPhaseStart = delay + 500;
+
     if (redWords.length > 0) {
-      // Change label to show disgust
+      // First: transform all red words into poop shapes in-place
       setTimeout(function() {
         $('monster-label').textContent = 'Eww, yucky words! 🤢';
-      }, redPhaseStart - 200);
+        redWords.forEach(function(el) {
+          el.style.transition = 'all 0.5s ease';
+          el.style.background = 'linear-gradient(145deg, #8d6e63, #6d4c41)';
+          el.style.color = '#5d4037';
+          el.style.borderRadius = '40% 40% 45% 45%';
+          el.style.padding = '2px 6px';
+        });
+      }, redPhaseStart - 400);
+
+      // Then eat the poop-shaped words one by one
+      redWords.forEach(function(el) {
+        setTimeout(function() {
+          var rect = el.getBoundingClientRect();
+          var fw = document.createElement('div');
+          fw.className = 'flying-word flying-word-poop';
+          fw.textContent = el.textContent;
+          fw.style.left = rect.left + 'px';
+          fw.style.top = rect.top + 'px';
+          document.body.appendChild(fw);
+          el.style.opacity = '0';
+
+          // Recalculate mouth position (unicorn is centered)
+          var mr = monster.getBoundingClientRect();
+          var mx = mr.left + mr.width / 2;
+          var my = mr.top + mr.height * 0.65;
+
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              fw.style.left = mx + 'px';
+              fw.style.top = my + 'px';
+              fw.classList.add('eaten');
+            });
+          });
+          setTimeout(function() { playChompSound(); }, 550);
+          setTimeout(function() { fw.remove(); }, 900);
+        }, redPhaseStart);
+        redPhaseStart += 150;
+      });
     }
 
-    redWords.forEach(function(el) {
-      setTimeout(function() {
-        var rect = el.getBoundingClientRect();
-        var flyingWord = document.createElement('div');
-        flyingWord.className = 'flying-word flying-word-red';
-        flyingWord.textContent = el.textContent;
-        flyingWord.style.left = rect.left + 'px';
-        flyingWord.style.top = rect.top + 'px';
-        document.body.appendChild(flyingWord);
+    // === Phase 3: Poop them out — fall to the bottom and stay ===
+    var poopPhaseStart = redPhaseStart + 900;
 
-        el.style.opacity = '0';
-
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() {
-            flyingWord.style.left = monsterMouthX + 'px';
-            flyingWord.style.top = monsterMouthY + 'px';
-            flyingWord.classList.add('eaten');
-          });
-        });
-
-        setTimeout(function() { playChompSound(); }, 550);
-        setTimeout(function() { flyingWord.remove(); }, 900);
-      }, redPhaseStart);
-      redPhaseStart += 120;
-    });
-
-    // Phase 3: Poop out the red words!
-    var poopPhaseStart = redPhaseStart + 800;
     if (redWords.length > 0) {
       setTimeout(function() {
         $('monster-label').textContent = 'Those words taste bad! 💩';
         playPoopSound();
 
-        var monsterRect2 = monster.getBoundingClientRect();
-        var poopX = monsterRect2.left + monsterRect2.width / 2;
-        var poopY = monsterRect2.bottom - 10;
+        var mr = monster.getBoundingClientRect();
+        var poopStartX = mr.left + mr.width / 2;
+        var poopStartY = mr.bottom;
+        var screenBottom = window.innerHeight;
 
-        var poopDelay = 200;
-        redWords.forEach(function(el, idx) {
+        var poopDelay = 300;
+        redWords.forEach(function(el) {
           setTimeout(function() {
-            var poopWord = document.createElement('div');
-            poopWord.className = 'poop-word';
-            poopWord.textContent = el.textContent;
-            poopWord.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
-            poopWord.style.left = poopX + 'px';
-            poopWord.style.top = poopY + 'px';
-            document.body.appendChild(poopWord);
+            var pw = document.createElement('div');
+            pw.className = 'poop-word';
+            pw.textContent = el.textContent;
+            pw.style.setProperty('--rot', (Math.random() * 30 - 15) + 'deg');
+            pw.style.left = poopStartX + 'px';
+            pw.style.top = poopStartY + 'px';
+            document.body.appendChild(pw);
 
             playPoopLetSound();
 
-            // Scatter the pooped words below the unicorn
-            var scatterX = poopX + (Math.random() - 0.5) * 200;
-            var scatterY = poopY + 30 + Math.random() * 80;
+            // Fall to the bottom of the screen and stay
+            var landX = poopStartX + (Math.random() - 0.5) * 250;
+            var landY = screenBottom - 30 - Math.random() * 50;
             requestAnimationFrame(function() {
               requestAnimationFrame(function() {
-                poopWord.style.left = scatterX + 'px';
-                poopWord.style.top = scatterY + 'px';
-                poopWord.classList.add('plopped');
+                pw.style.left = landX + 'px';
+                pw.style.top = landY + 'px';
+                pw.classList.add('plopped');
               });
             });
-
-            setTimeout(function() {
-              poopWord.classList.add('fade-out');
-              setTimeout(function() { poopWord.remove(); }, 600);
-            }, 2000);
+            // Words stay — no fade-out
           }, poopDelay);
-          poopDelay += 200;
+          poopDelay += 250;
         });
-
-        // Reset label
-        setTimeout(function() {
-          $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
-        }, poopDelay + 1500);
       }, poopPhaseStart);
     }
 
-    // Monster leaves after everything
+    // === Unicorn exits ===
     var exitTime = (redWords.length > 0)
-      ? poopPhaseStart + (redWords.length * 200) + 3000
-      : delay + 1200;
+      ? poopPhaseStart + (redWords.length * 250) + 2500
+      : delay + 1500;
 
     setTimeout(function() {
       mouth.classList.remove('eating');
+      monster.classList.remove('centered');
       monster.classList.remove('visible');
       setTimeout(function() {
         overlay.classList.remove('active');
         $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
       }, 900);
     }, exitTime);
-  }, 800);
+  }, 1000);
 }
 
 // === RETRY / NEXT ===
@@ -748,6 +755,7 @@ function cleanupFlyingWords() {
   document.querySelectorAll('.poop-word').forEach(function(el) { el.remove(); });
   $('monster-overlay').classList.remove('active');
   $('monster').classList.remove('visible');
+  $('monster').classList.remove('centered');
   $('monster-mouth').classList.remove('eating');
   $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
 }
