@@ -635,8 +635,8 @@ function startMonsterAnimation() {
     });
 
     // === Phase 2: Transform purple words into poop in-place, then eat ===
-    var redTransformTime = delay + 400;
-    var redEatStart = delay + 900;
+    var redTransformTime = delay + 600;
+    var redEatStart = delay + 1400;
 
     if (hasRed) {
       // Transform purple words into poop shapes in-place
@@ -676,11 +676,11 @@ function startMonsterAnimation() {
           setTimeout(function() { playChompSound(); }, 550);
           setTimeout(function() { fw.remove(); }, 900);
         }, eatTime);
-        eatTime += 180;
+        eatTime += 350;
       });
 
       // === Phase 3: Poop them out — fall to the bottom and stay ===
-      var poopStart = eatTime + 900;
+      var poopStart = eatTime + 1200;
       setTimeout(function() {
         $('monster-label').textContent = 'Those words taste bad! 💩';
         playPoopSound();
@@ -690,7 +690,7 @@ function startMonsterAnimation() {
         var poopY = m.y + 60;
         var screenH = window.innerHeight;
 
-        var pDelay = 300;
+        var pDelay = 400;
         redWords.forEach(function(el) {
           setTimeout(function() {
             var pw = document.createElement('div');
@@ -714,7 +714,7 @@ function startMonsterAnimation() {
               });
             });
           }, pDelay);
-          pDelay += 250;
+          pDelay += 400;
         });
 
         // Reset label after pooping
@@ -724,7 +724,7 @@ function startMonsterAnimation() {
       }, poopStart);
 
       // Unicorn exits after poop phase
-      var exitTime = poopStart + (redWords.length * 250) + 2500;
+      var exitTime = poopStart + (redWords.length * 400) + 3000;
       setTimeout(function() {
         mouth.classList.remove('eating');
         monster.classList.remove('visible');
