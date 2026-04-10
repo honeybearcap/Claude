@@ -557,6 +557,74 @@ function playPoopLetSound() {
   osc.stop(now + 0.15);
 }
 
+// Shimmery "whoosh" sparkle sound — a rising shimmer of high sine tones
+function playSparkleSound() {
+  var ctx = getAudioCtx();
+  var now = ctx.currentTime;
+
+  // Rising arpeggio of bright high notes
+  var notes = [1568, 2093, 2637, 3136, 3951, 4186];
+  notes.forEach(function(freq, idx) {
+    var osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    var gain = ctx.createGain();
+    var t0 = now + idx * 0.06;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.1, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.5);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.55);
+  });
+
+  // Add a soft shimmer with noise filtered high
+  var bufferLen = ctx.sampleRate * 0.5;
+  var buffer = ctx.createBuffer(1, bufferLen, ctx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for (var i = 0; i < bufferLen; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferLen, 2);
+  }
+  var noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 4000;
+  var noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.08, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+  noise.connect(filter);
+  filter.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noise.start(now);
+}
+
+// Tiny high "twinkle" ding for each star landing
+function playTwinkleSound() {
+  var ctx = getAudioCtx();
+  var now = ctx.currentTime;
+
+  // Two quick high sine pings
+  var freqs = [2637, 3951];
+  freqs.forEach(function(freq, idx) {
+    var osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    var gain = ctx.createGain();
+    var t0 = now + idx * 0.05;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.12, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.3);
+  });
+}
+
 // === FINISH ===
 function finishReading() {
   stopTimer();
@@ -634,32 +702,27 @@ function startMonsterAnimation() {
       delay += 120;
     });
 
-    // === Phase 2: Transform purple words into poop in-place, then eat ===
+    // === Phase 2: Transform purple words into sparkling stars, then eat ===
     var redTransformTime = delay + 600;
     var redEatStart = delay + 1400;
 
     if (hasRed) {
-      // Transform purple words into poop shapes in-place
+      // Transform purple words into sparkling star shapes in-place
       setTimeout(function() {
-        $('monster-label').textContent = 'Eww, yucky words! 🤢';
+        $('monster-label').textContent = 'Ooh, sparkly words! ✨';
         redWords.forEach(function(el) {
-          el.style.transition = 'all 0.5s ease';
-          el.style.background = 'linear-gradient(145deg, #8d6e63, #6d4c41)';
-          el.style.color = '#fff';
-          el.style.borderRadius = '40% 40% 45% 45%';
-          el.style.padding = '2px 8px';
-          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+          el.classList.add('star-word');
         });
       }, redTransformTime);
 
-      // Eat the poop-shaped words one by one
+      // Eat the star-shaped words one by one
       var eatTime = redEatStart;
       redWords.forEach(function(el) {
         setTimeout(function() {
           var rect = el.getBoundingClientRect();
           var m = getMouth();
           var fw = document.createElement('div');
-          fw.className = 'flying-word flying-word-poop';
+          fw.className = 'flying-word flying-word-star';
           fw.textContent = el.textContent;
           fw.style.left = rect.left + 'px';
           fw.style.top = rect.top + 'px';
@@ -679,33 +742,38 @@ function startMonsterAnimation() {
         eatTime += 350;
       });
 
-      // === Phase 3: Poop them out — fall to the bottom and stay ===
-      var poopStart = eatTime + 1200;
+      // === Phase 3: Shoot stars out and sparkle! ===
+      var starStart = eatTime + 1200;
       setTimeout(function() {
-        $('monster-label').textContent = 'Those words taste bad! 💩';
-        playPoopSound();
+        $('monster-label').textContent = 'Shooting stars! 🌟✨';
+        playSparkleSound();
 
         var m = getMouth();
-        var poopX = m.x;
-        var poopY = m.y + 60;
+        var starX = m.x;
+        var starY = m.y;
         var screenH = window.innerHeight;
+        var screenW = window.innerWidth;
 
         var pDelay = 400;
         redWords.forEach(function(el) {
           setTimeout(function() {
             var pw = document.createElement('div');
-            pw.className = 'poop-word';
+            pw.className = 'star-word-flying';
             pw.textContent = el.textContent;
             pw.style.setProperty('--rot', (Math.random() * 30 - 15) + 'deg');
-            pw.style.left = poopX + 'px';
-            pw.style.top = poopY + 'px';
+            pw.style.left = starX + 'px';
+            pw.style.top = starY + 'px';
             document.body.appendChild(pw);
 
-            playPoopLetSound();
+            playTwinkleSound();
 
-            // Fall to the bottom of the screen and stay
-            var landX = poopX + (Math.random() - 0.5) * 220;
-            var landY = screenH - 20 - Math.random() * 40;
+            // Stars arc out and land around the screen
+            var angle = (Math.random() - 0.5) * Math.PI * 1.2;
+            var dist = 150 + Math.random() * 150;
+            var landX = Math.max(20, Math.min(screenW - 120,
+              starX + Math.sin(angle) * dist));
+            var landY = Math.max(80, Math.min(screenH - 60,
+              starY - 100 + Math.cos(angle) * dist * 0.4 + Math.random() * 120));
             requestAnimationFrame(function() {
               requestAnimationFrame(function() {
                 pw.style.left = landX + 'px';
@@ -717,14 +785,14 @@ function startMonsterAnimation() {
           pDelay += 400;
         });
 
-        // Reset label after pooping
+        // Reset label after sparkling
         setTimeout(function() {
           $('monster-label').textContent = 'Yummy sparkle words! ✨🦄';
         }, pDelay + 1000);
-      }, poopStart);
+      }, starStart);
 
-      // Unicorn exits after poop phase
-      var exitTime = poopStart + (redWords.length * 400) + 3000;
+      // Unicorn exits after star phase
+      var exitTime = starStart + (redWords.length * 400) + 3000;
       setTimeout(function() {
         mouth.classList.remove('eating');
         monster.classList.remove('visible');
@@ -762,7 +830,7 @@ function nextPassage() {
 
 function cleanupFlyingWords() {
   document.querySelectorAll('.flying-word').forEach(function(el) { el.remove(); });
-  document.querySelectorAll('.poop-word').forEach(function(el) { el.remove(); });
+  document.querySelectorAll('.star-word-flying').forEach(function(el) { el.remove(); });
   $('monster-overlay').classList.remove('active');
   $('monster').classList.remove('visible');
   $('monster-mouth').classList.remove('eating');
